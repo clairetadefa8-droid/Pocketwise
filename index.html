@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1F6F5C">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Pocketwise – Money Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F1EA; --card:#FFFFFF; --ink:#1C2321; --muted:#6B7470; --line:#E6E1D6;
+  --accent:#1F6F5C; --accent-soft:#DCEDE6; --expense:#C2513B; --income:#2E8B57; --warn:#D99A22;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center}
+.app{width:100%;max-width:440px;min-height:100vh;position:relative;padding-bottom:96px}
+header{padding:22px 20px 8px;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.month{display:flex;align-items:center;gap:6px;font-weight:600;font-size:14px}
+.month button{border:none;background:var(--card);width:30px;height:30px;border-radius:50%;font-size:15px;cursor:pointer;color:var(--ink)}
+.hero{margin:10px 16px;background:var(--accent);color:#fff;border-radius:24px;padding:22px}
+.hero small{opacity:.8;font-size:13px}
+.hero .bal{font-size:36px;font-weight:800;letter-spacing:-1px;margin:4px 0 16px}
+.hero .row{display:flex;gap:10px}
+.hero .pill{flex:1;background:rgba(255,255,255,.14);border-radius:14px;padding:10px 12px}
+.hero .pill b{display:block;font-size:16px;margin-top:2px}
+.card{background:var(--card);margin:12px 16px;border-radius:20px;padding:18px}
+.card h3{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.card h3 a{font-size:13px;color:var(--accent);font-weight:600;cursor:pointer}
+.bar{height:10px;background:var(--line);border-radius:10px;overflow:hidden;margin:8px 0 6px}
+.bar i{display:block;height:100%;border-radius:10px;background:var(--accent);transition:width .4s}
+.meta{font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+.cats{display:flex;flex-direction:column;gap:10px}
+.cat-row{display:flex;align-items:center;gap:10px;font-size:14px}
+.cat-row .em{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;flex-shrink:0}
+.cat-row .info{flex:1}
+.cat-row .info .bar{height:6px;margin:5px 0 0}
+.cat-row b{font-size:14px}
+.tx{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.tx:last-child{border-bottom:none}
+.tx .em{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.tx .d{flex:1;min-width:0}
+.tx .d div{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .d small{color:var(--muted);font-size:12px}
+.tx .amt{font-weight:700;font-size:15px}
+.tx .del{border:none;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:4px}
+.neg{color:var(--expense)} .pos{color:var(--income)}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:18px 0}
+.fab{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;border:none;border-radius:30px;padding:16px 30px;font:700 16px 'Plus Jakarta Sans';box-shadow:0 8px 24px rgba(0,0,0,.2);cursor:pointer}
+.premium{background:linear-gradient(135deg,#1C2321,#2F3C38);color:#fff}
+.premium p{font-size:13px;opacity:.8;margin:4px 0 12px;line-height:1.5}
+.premium button{background:#F2C14E;color:#1C2321;border:none;border-radius:12px;padding:10px 16px;font:700 14px 'Plus Jakarta Sans';cursor:pointer}
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(20,25,23,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.overlay.show{display:flex}
+.sheet{background:var(--card);width:100%;max-width:440px;border-radius:26px 26px 0 0;padding:22px 20px 28px;max-height:92vh;overflow:auto;animation:up .25s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h2{font-size:19px;margin-bottom:16px}
+.toggle{display:flex;background:var(--bg);border-radius:14px;padding:4px;margin-bottom:16px}
+.toggle button{flex:1;border:none;background:none;padding:10px;border-radius:11px;font:600 14px 'Plus Jakarta Sans';cursor:pointer;color:var(--muted)}
+.toggle button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.amount-in{width:100%;border:none;font:800 40px 'Plus Jakarta Sans';text-align:center;outline:none;margin-bottom:14px;color:var(--ink);background:none}
+label{font-size:13px;color:var(--muted);font-weight:600;display:block;margin:12px 0 6px}
+input[type=text],input[type=date],input[type=number]{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:12px;font:500 15px 'Plus Jakarta Sans';outline:none;background:#fff}
+input:focus{border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 11px;font:500 13px 'Plus Jakarta Sans';cursor:pointer}
+.chip.on{border-color:var(--accent);background:var(--accent-soft)}
+.save{width:100%;margin-top:20px;background:var(--accent);color:#fff;border:none;border-radius:14px;padding:15px;font:700 16px 'Plus Jakarta Sans';cursor:pointer}
+.ghost{width:100%;margin-top:8px;background:none;border:none;padding:10px;color:var(--muted);font:600 14px 'Plus Jakarta Sans';cursor:pointer}
+.profile{display:flex;flex-direction:column;gap:10px}
+.profile button{display:flex;align-items:center;gap:14px;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:14px;cursor:pointer;font-family:inherit}
+.profile button span{font-size:28px}
+.profile button b{display:block;font-size:15px;color:var(--ink)}
+.profile button small{color:var(--muted);font-size:13px}
+.err{color:var(--expense);font-size:13px;margin-top:8px;min-height:16px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">Pocket<span>wise</span></div>
+    <div class="month"><button id="prev">‹</button><span id="mlabel"></span><button id="next">›</button></div>
+  </header>
+
+  <div class="hero">
+    <small>Balance this month</small>
+    <div class="bal" id="bal">€0.00</div>
+    <div class="row">
+      <div class="pill"><small>↑ Income</small><b id="inc">€0</b></div>
+      <div class="pill"><small>↓ Spent</small><b id="exp">€0</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Monthly budget <a id="editBudget">Edit</a></h3>
+    <div class="bar"><i id="bbar" style="width:0"></i></div>
+    <div class="meta"><span id="bused"></span><span id="bleft"></span></div>
+  </div>
+
+  <div class="card">
+    <h3>Where your money goes</h3>
+    <div class="cats" id="cats"></div>
+  </div>
+
+  <div class="card">
+    <h3>Transactions</h3>
+    <div id="txs"></div>
+  </div>
+
+  <div class="card premium">
+    <h3 style="margin-bottom:0">⭐ Pocketwise Premium</h3>
+    <p>Savings goals, bill reminders, export to Excel, and no ads. One-time €4.99.</p>
+    <button id="goPremium">Upgrade</button>
+  </div>
+
+  <button class="fab" id="add">+ Add</button>
+</div>
+
+<!-- Add sheet -->
+<div class="overlay" id="addSheet">
+  <div class="sheet">
+    <div class="toggle"><button data-t="expense" class="on">Expense</button><button data-t="income">Income</button></div>
+    <input class="amount-in" id="amt" type="number" inputmode="decimal" placeholder="€0.00" step="0.01">
+    <label>Category</label>
+    <div class="chips" id="catChips"></div>
+    <label>Note (optional)</label>
+    <input type="text" id="note" placeholder="e.g. Lunch with friends">
+    <label>Date</label>
+    <input type="date" id="date">
+    <div class="err" id="err"></div>
+    <button class="save" id="save">Save</button>
+    <button class="ghost" data-close>Cancel</button>
+  </div>
+</div>
+
+<!-- Budget sheet -->
+<div class="overlay" id="budgetSheet">
+  <div class="sheet">
+    <h2>Set monthly budget</h2>
+    <input type="number" id="budgetIn" inputmode="decimal" placeholder="e.g. 800">
+    <button class="save" id="saveBudget">Save budget</button>
+    <button class="ghost" data-close>Cancel</button>
+  </div>
+</div>
+
+<!-- Welcome sheet -->
+<div class="overlay" id="welcome">
+  <div class="sheet">
+    <h2>Welcome! Who are you tracking for?</h2>
+    <div class="profile">
+      <button data-p="student"><span>🎓</span><div><b>College student</b><small>Rent, books, food, going out</small></div></button>
+      <button data-p="mom"><span>👩‍👧</span><div><b>Mom / family</b><small>Groceries, kids, school, home</small></div></button>
+      <button data-p="general"><span>💼</span><div><b>Everyone else</b><small>Bills, food, transport, fun</small></div></button>
+    </div>
+  </div>
+</div>
+
+<!-- Info sheet -->
+<div class="overlay" id="info">
+  <div class="sheet">
+    <h2 id="infoT"></h2>
+    <p id="infoP" style="color:var(--muted);line-height:1.6;font-size:15px"></p>
+    <button class="save" data-close>OK</button>
+  </div>
+</div>
+
+<script>
+const PROFILES={
+  student:[["Food","🍔"],["Rent","🏠"],["Books & school","📚"],["Transport","🚌"],["Going out","🎉"],["Phone","📱"],["Shopping","🛍️"],["Other","✨"]],
+  mom:[["Groceries","🛒"],["Kids","🧸"],["School","🎒"],["Home & bills","🏠"],["Health","💊"],["Transport","🚗"],["Clothes","👕"],["Other","✨"]],
+  general:[["Food","🍽️"],["Bills","🧾"],["Rent","🏠"],["Transport","🚗"],["Fun","🎬"],["Health","💊"],["Shopping","🛍️"],["Other","✨"]]
+};
+const INCOME=[["Salary","💶"],["Allowance","🎁"],["Side job","💼"],["Other","✨"]];
+const COLORS=["#F6E3D4","#DDEBF7","#E6F0DA","#F5E0E8","#EFE6F7","#FFF0C9","#E0F2EE","#ECE9E2"];
+
+let S={profile:null,budget:0,tx:[]};
+try{const s=localStorage.getItem('pocketwise');if(s)S=JSON.parse(s)}catch(e){}
+const save=()=>{try{localStorage.setItem('pocketwise',JSON.stringify(S))}catch(e){}};
+
+let view=new Date();view.setDate(1);
+let type="expense",cat=null;
+const $=id=>document.getElementById(id);
+const eur=n=>"€"+n.toLocaleString('en-IE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const cats=()=>type==="income"?INCOME:PROFILES[S.profile||'general'];
+const emojiFor=(c,t)=>((t==="income"?INCOME:PROFILES[S.profile||'general']).find(x=>x[0]===c)||["","✨"])[1];
+const colorFor=c=>{const i=PROFILES[S.profile||'general'].findIndex(x=>x[0]===c);return COLORS[i<0?7:i]};
+
+function render(){
+  $('mlabel').textContent=view.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const m=S.tx.filter(t=>{const d=new Date(t.date);return d.getMonth()===view.getMonth()&&d.getFullYear()===view.getFullYear()});
+  const inc=m.filter(t=>t.type==="income").reduce((a,t)=>a+t.amount,0);
+  const exp=m.filter(t=>t.type==="expense").reduce((a,t)=>a+t.amount,0);
+  $('bal').textContent=(inc-exp<0?"-":"")+eur(Math.abs(inc-exp));
+  $('inc').textContent=eur(inc);$('exp').textContent=eur(exp);
+
+  if(S.budget>0){
+    const p=Math.min(100,exp/S.budget*100);
+    $('bbar').style.width=p+"%";
+    $('bbar').style.background=p>=100?"var(--expense)":p>=80?"var(--warn)":"var(--accent)";
+    $('bused').textContent=`${eur(exp)} of ${eur(S.budget)}`;
+    $('bleft').textContent=exp>S.budget?`${eur(exp-S.budget)} over`:`${eur(S.budget-exp)} left`;
+  }else{$('bbar').style.width="0";$('bused').textContent="No budget set";$('bleft').textContent="Tap Edit"}
+
+  const by={};m.filter(t=>t.type==="expense").forEach(t=>by[t.cat]=(by[t.cat]||0)+t.amount);
+  const arr=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  $('cats').innerHTML=arr.length?arr.map(([c,v])=>`
+    <div class="cat-row"><div class="em" style="background:${colorFor(c)}">${emojiFor(c,"expense")}</div>
+    <div class="info"><div style="display:flex;justify-content:space-between"><span>${c}</span><b>${eur(v)}</b></div>
+    <div class="bar"><i style="width:${v/exp*100}%"></i></div></div></div>`).join("")
+    :`<div class="empty">No spending yet this month</div>`;
+
+  const list=[...m].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+  $('txs').innerHTML=list.length?list.map(t=>`
+    <div class="tx"><div class="em" style="background:${t.type==="income"?"#E3F3E8":colorFor(t.cat)}">${emojiFor(t.cat,t.type)}</div>
+    <div class="d"><div>${esc(t.note||t.cat)}</div><small>${t.cat} · ${new Date(t.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</small></div>
+    <div class="amt ${t.type==="income"?"pos":"neg"}">${t.type==="income"?"+":"-"}${eur(t.amount)}</div>
+    <button class="del" data-id="${t.id}" aria-label="Delete">✕</button></div>`).join("")
+    :`<div class="empty">Tap “+ Add” to record your first expense</div>`;
+}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function chips(){
+  cat=cats()[0][0];
+  $('catChips').innerHTML=cats().map(([c,e])=>`<button class="chip${c===cat?" on":""}" data-c="${c}">${e} ${c}</button>`).join("");
+}
+const open=id=>$(id).classList.add('show');
+const close=()=>document.querySelectorAll('.overlay').forEach(o=>{if(o.id!=="welcome"||S.profile)o.classList.remove('show')});
+
+$('add').onclick=()=>{type="expense";document.querySelectorAll('.toggle button').forEach(b=>b.classList.toggle('on',b.dataset.t==="expense"));
+  chips();$('amt').value="";$('note').value="";$('err').textContent="";
+  const t=new Date();$('date').value=t.toISOString().slice(0,10);open('addSheet');setTimeout(()=>$('amt').focus(),150)};
+document.querySelectorAll('.toggle button').forEach(b=>b.onclick=()=>{type=b.dataset.t;
+  document.querySelectorAll('.toggle button').forEach(x=>x.classList.toggle('on',x===b));chips()});
+$('catChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;cat=b.dataset.c;
+  document.querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x===b))};
+$('save').onclick=()=>{const a=parseFloat($('amt').value);
+  if(!(a>0)){$('err').textContent="Please enter an amount";return}
+  S.tx.push({id:Date.now(),type,amount:Math.round(a*100)/100,cat,note:$('note').value.trim(),date:$('date').value});
+  save();const d=new Date($('date').value);view=new Date(d.getFullYear(),d.getMonth(),1);close();render()};
+$('txs').onclick=e=>{const b=e.target.closest('.del');if(!b)return;S.tx=S.tx.filter(t=>t.id!=b.dataset.id);save();render()};
+$('editBudget').onclick=()=>{$('budgetIn').value=S.budget||"";open('budgetSheet')};
+$('saveBudget').onclick=()=>{S.budget=parseFloat($('budgetIn').value)||0;save();close();render()};
+$('prev').onclick=()=>{view.setMonth(view.getMonth()-1);render()};
+$('next').onclick=()=>{view.setMonth(view.getMonth()+1);render()};
+$('goPremium').onclick=()=>{$('infoT').textContent="⭐ Premium (demo)";
+  $('infoP').textContent="In the real Android app, this button opens Google Play's payment screen. This is where you earn money: each upgrade pays you about 85% of the price.";open('info')};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
+document.querySelectorAll('.overlay').forEach(o=>o.onclick=e=>{if(e.target===o)close()});
+document.querySelectorAll('.profile button').forEach(b=>b.onclick=()=>{S.profile=b.dataset.p;save();$('welcome').classList.remove('show');render()});
+
+if(!S.profile)open('welcome');
+render();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>
